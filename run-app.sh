@@ -38,25 +38,22 @@ echo "Kind installed successfully"
 
 # Create Kind cluster
 echo "Creating Kind cluster..."
-kind create cluster --name tradevis-cluster
+sudo kind create cluster --name tradevis-cluster
 
 # Verify cluster is running
-kubectl cluster-info --context kind-tradevis-cluster
+sudo kubectl cluster-info --context kind-tradevis-cluster
 echo "Kind cluster created successfully"
 
 # Apply Kubernetes resources (we're already in the app directory)
 echo "Applying Kubernetes resources..."
-kubectl apply -f kubernetes/deployment.yaml
+sudo kubectl apply -f kubernetes/deployment.yaml
 
 # Wait for deployments to be ready
 echo "Waiting for deployments to be ready..."
-kubectl wait --for=condition=available --timeout=300s deployment/tradevis-frontend
+sudo kubectl wait --for=condition=available --timeout=300s deployment/tradevis-frontend
 
 # Set up port forwarding for the frontend service
 echo "Setting up port forwarding..."
-kubectl port-forward svc/tradevis-frontend 80:80 &
-
-echo "TradeVis application setup completed successfully!"
-echo "You can access the application at http://localhost or http://$(curl -s ifconfig.me)"
+sudo kubectl port-forward svc/tradevis-frontend 8080:80 &
 
 
