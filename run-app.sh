@@ -54,6 +54,9 @@ sudo kubectl wait --for=condition=available --timeout=300s deployment/tradevis-f
 
 # Set up port forwarding for the frontend service
 echo "Setting up port forwarding..."
-sudo kubectl port-forward svc/tradevis-frontend 80:80 --address 0.0.0.0 &
+nohup sudo kubectl port-forward svc/tradevis-frontend 80:80 --address 0.0.0.0 > /tmp/port-forward.log 2>&1 &
+
+echo "TradeVis application setup completed successfully!"
+echo "You can access the application at http://localhost or http://$(curl -s ifconfig.me)"
 
 
