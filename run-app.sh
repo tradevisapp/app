@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+DOCKERHUB_USERNAME="roeilevinson"
+export DOCKERHUB_USERNAME
+
 echo "Starting TradeVis application setup..."
 
 # Update system packages
