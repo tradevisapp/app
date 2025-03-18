@@ -54,6 +54,6 @@ sudo kubectl wait --for=condition=available --timeout=300s deployment/tradevis-f
 
 # Set up port forwarding for the frontend service
 echo "Setting up port forwarding..."
-sudo kubectl port-forward svc/tradevis-frontend 80:30080 &
+sudo kubectl port-forward svc/tradevis-frontend 30080:80 &
 
 
