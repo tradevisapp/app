@@ -86,7 +86,7 @@ sleep 120
 
 # Set up port forwarding for the frontend service
 echo "Setting up port forwarding for the application..."
-nohup sudo kubectl port-forward svc/tradevis-frontend -n app 80:80 --address 0.0.0.0 > $HOME/port-forward.log 2>&1 &
+nohup sudo kubectl port-forward svc/tradevis-frontend -n app 8081:80 --address 0.0.0.0 > $HOME/port-forward.log 2>&1 &
 
 echo "TradeVis application setup completed successfully with ArgoCD!"
 echo "You can access the application at http://localhost or http://$(curl -s ifconfig.me)"
