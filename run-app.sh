@@ -48,6 +48,8 @@ echo "Kind cluster created successfully"
 echo "Installing ArgoCD..."
 # Create namespace
 sudo kubectl create namespace argocd
+# Create app namespace
+sudo kubectl create namespace app
 # Install ArgoCD components - fixed command to ensure proper installation
 sudo kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 
@@ -78,21 +80,18 @@ echo "ArgoCD is available at http://localhost:8080"
 echo "Username: admin"
 echo "Password: $ARGO_PASSWORD"
 
-# Apply initial Kubernetes resources to bootstrap
-echo "Applying initial Kubernetes resources..."
-sudo kubectl apply -f kube-app/deployment.yaml
-
-# Wait for deployments to be ready
-echo "Waiting for deployments to be ready..."
-sudo kubectl wait --for=condition=available --timeout=300s deployment/tradevis-frontend
+# Wait for ArgoCD to synchronize the application
+echo "Waiting for ArgoCD to synchronize the application (this may take a minute)..."
+sleep 30
 
 # Set up port forwarding for the frontend service
 echo "Setting up port forwarding for the application..."
-nohup sudo kubectl port-forward svc/tradevis-frontend 80:80 --address 0.0.0.0 > $HOME/port-forward.log 2>&1 &
+nohup sudo kubectl port-forward svc/tradevis-frontend -n app 80:80 --address 0.0.0.0 > $HOME/port-forward.log 2>&1 &
 
 echo "TradeVis application setup completed successfully with ArgoCD!"
 echo "You can access the application at http://localhost or http://$(curl -s ifconfig.me)"
 echo "You can access ArgoCD at http://localhost:8080"
 echo "ArgoCD controller metrics are available at http://localhost:8090/metrics"
+echo "You can check the application sync status with: kubectl get applications -n argocd"
 
 
