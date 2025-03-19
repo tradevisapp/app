@@ -19,17 +19,24 @@ This script will:
 ## Accessing the application
 
 - **TradeVis Application**: http://localhost
-- **ArgoCD UI**: https://localhost:8080
+- **ArgoCD UI**: http://localhost:8080
   - Username: admin
   - Password: (displayed after setup)
+- **ArgoCD Controller Metrics**: http://localhost:8090/metrics
 
 ## How ArgoCD works with this app
 
 ArgoCD continuously monitors the Git repository and automatically synchronizes the Kubernetes resources when changes are detected. The deployment process is:
 
-1. Make changes to Kubernetes manifests in the `kubernetes/` directory
+1. Make changes to Kubernetes manifests in the `kube-app/` directory
 2. Commit and push to your Git repository
 3. ArgoCD detects the changes and applies them to the cluster
+
+## Directory Structure
+
+- `kube-app/`: Contains Kubernetes manifest files for the application
+- `argocd/`: Contains ArgoCD configuration files
+- `run-app.sh`: Setup script for the entire application
 
 ## Manual sync
 
@@ -45,7 +52,7 @@ kubectl argo cd app sync tradevis-app -n argocd
 kubectl get applications -n argocd
 ```
 
-Or use the ArgoCD UI at https://localhost:8080
+Or use the ArgoCD UI at http://localhost:8080
 
 ## Troubleshooting
 

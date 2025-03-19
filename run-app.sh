@@ -46,36 +46,53 @@ echo "Kind cluster created successfully"
 
 # Install ArgoCD
 echo "Installing ArgoCD..."
+# Create namespace
 sudo kubectl create namespace argocd
+# Install ArgoCD components - fixed command to ensure proper installation
 sudo kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 
-# Wait for ArgoCD to be ready
-echo "Waiting for ArgoCD to be ready..."
-sudo kubectl wait --for=condition=available --timeout=300s deployment/argocd-server -n argocd
-sudo kubectl wait --for=condition=available --timeout=300s deployment/argocd-repo-server -n argocd
-sudo kubectl wait --for=condition=available --timeout=300s deployment/argocd-application-controller -n argocd
+# Give ArgoCD time to start up before checking its status
+echo "Waiting for ArgoCD to start (60 seconds)..."
+sleep 60
+
+# Verify ArgoCD components are running
+echo "Verifying ArgoCD installation..."
+sudo kubectl get pods -n argocd
 
 # Configure ArgoCD
 echo "Configuring ArgoCD..."
-sudo kubectl apply -f kubernetes/argocd-install.yaml
-sudo kubectl apply -f kubernetes/argocd-application.yaml
+sudo kubectl apply -f argocd/argocd-install.yaml
+sudo kubectl apply -f argocd/argocd-application.yaml
 
 # Set up port forwarding for ArgoCD UI
 echo "Setting up port forwarding for ArgoCD UI..."
-nohup sudo kubectl port-forward svc/argocd-server -n argocd 8080:443 --address 0.0.0.0 > /tmp/argocd-port-forward.log 2>&1 &
+nohup sudo kubectl port-forward svc/argocd-server -n argocd 8080:80 --address 0.0.0.0 > /tmp/argocd-port-forward.log 2>&1 &
+
+# Add additional port forwarding for ArgoCD to application-controller
+echo "Setting up additional port forwarding for ArgoCD controller..."
+nohup sudo kubectl port-forward deployment/argocd-application-controller -n argocd 8090:8080 --address 0.0.0.0 > /tmp/argocd-controller-forward.log 2>&1 &
 
 # Get ArgoCD initial admin password
 ARGO_PASSWORD=$(sudo kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
-echo "ArgoCD is available at https://localhost:8080"
+echo "ArgoCD is available at http://localhost:8080"
 echo "Username: admin"
 echo "Password: $ARGO_PASSWORD"
 
 # Apply initial Kubernetes resources to bootstrap
 echo "Applying initial Kubernetes resources..."
-sudo kubectl apply -f kubernetes/deployment.yaml
+sudo kubectl apply -f kube-app/deployment.yaml
+
+# Wait for deployments to be ready
+echo "Waiting for deployments to be ready..."
+sudo kubectl wait --for=condition=available --timeout=300s deployment/tradevis-frontend
+
+# Set up port forwarding for the frontend service
+echo "Setting up port forwarding for the application..."
+nohup sudo kubectl port-forward svc/tradevis-frontend 80:80 --address 0.0.0.0 > /tmp/port-forward.log 2>&1 &
 
 echo "TradeVis application setup completed successfully with ArgoCD!"
 echo "You can access the application at http://localhost or http://$(curl -s ifconfig.me)"
-echo "You can access ArgoCD at https://localhost:8080"
+echo "You can access ArgoCD at http://localhost:8080"
+echo "ArgoCD controller metrics are available at http://localhost:8090/metrics"
 
 
