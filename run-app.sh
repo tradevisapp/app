@@ -82,7 +82,7 @@ echo "Password: $ARGO_PASSWORD"
 
 # Wait for ArgoCD to synchronize the application
 echo "Waiting for ArgoCD to synchronize the application (this may take a minute)..."
-sleep 120
+sleep 30
 
 # Set up port forwarding for the frontend service
 echo "Setting up port forwarding for the application..."
