@@ -52,18 +52,13 @@ sudo kind create cluster --name tradevis-cluster --config kind-config.yaml
 sudo kubectl cluster-info --context kind-tradevis-cluster
 echo "Kind cluster created successfully"
 
-# Install NGINX Ingress Controller
-echo "Installing NGINX Ingress Controller..."
-chmod +x install-nginx-ingress.sh
-./install-nginx-ingress.sh
-
 # Install ArgoCD
 echo "Installing ArgoCD..."
 # Create namespace
 sudo kubectl create namespace argocd
 # Create app namespace
 sudo kubectl create namespace app
-# Install ArgoCD components - fixed command to ensure proper installation
+# Install ArgoCD components
 sudo kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 
 # Give ArgoCD time to start up before checking its status
@@ -77,7 +72,6 @@ sudo kubectl get pods -n argocd
 # Configure ArgoCD
 echo "Configuring ArgoCD..."
 sudo kubectl apply -f argocd/argocd-install.yaml
-sudo kubectl apply -f argocd/argocd-application.yaml
 
 # Get ArgoCD initial admin password
 ARGO_PASSWORD=$(sudo kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
@@ -98,35 +92,27 @@ argocd account update-password --current-password $ARGO_PASSWORD --new-password 
 
 echo "ArgoCD password has been reset to 'adminadmin'"
 
+# Deploy NGINX Ingress Controller via ArgoCD
+echo "Deploying NGINX Ingress Controller via ArgoCD..."
+sudo kubectl apply -f argocd/nginx-ingress-application.yaml
+
+# Deploy TradeVis application via ArgoCD
+echo "Deploying TradeVis application via ArgoCD..."
+sudo kubectl apply -f argocd/argocd-application.yaml
+
+# Wait for applications to be synced
+echo "Waiting for applications to be synced (60 seconds)..."
+sleep 60
+
 # Get node IP
 NODE_IP=$(sudo kubectl get nodes -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')
 
-# Create Ingress for ArgoCD
-cat <<EOF | sudo kubectl apply -f -
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: argocd-server-ingress
-  namespace: argocd
-  annotations:
-    kubernetes.io/ingress.class: nginx
-    nginx.ingress.kubernetes.io/force-ssl-redirect: "false"
-    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
-spec:
-  rules:
-  - http:
-      paths:
-      - path: /argocd
-        pathType: Prefix
-        backend:
-          service:
-            name: argocd-server
-            port:
-              number: 80
-EOF
+# Apply ArgoCD Ingress
+echo "Applying ArgoCD Ingress configuration..."
+sudo kubectl apply -f argocd/argocd-ingress.yaml
 
-# Wait for ArgoCD to synchronize the application
-echo "Waiting for ArgoCD to synchronize the application (this may take a minute)..."
+# Wait for everything to be set up
+echo "Waiting for final setup (30 seconds)..."
 sleep 30
 
 echo "TradeVis application setup completed successfully with ArgoCD and NGINX Ingress!"

@@ -5,9 +5,23 @@ This document explains how to use NGINX Ingress Controller with TradeVis on your
 ## Overview
 
 The setup includes:
-- NGINX Ingress Controller deployed as a NodePort service
+- NGINX Ingress Controller deployed as an ArgoCD application
+- TradeVis application deployed as an ArgoCD application
 - Ingress resources for both the TradeVis application and ArgoCD
 - Custom configuration for EC2 environment
+
+## ArgoCD Applications
+
+The deployment uses two ArgoCD applications:
+1. **nginx-ingress** - Manages the NGINX Ingress Controller deployment
+2. **tradevis** - Manages the TradeVis application deployment
+
+## Configuration Files
+
+The NGINX Ingress setup uses the following configuration files:
+- `argocd/nginx-ingress-application.yaml` - ArgoCD application for NGINX Ingress Controller
+- `argocd/argocd-ingress.yaml` - Ingress resource for ArgoCD
+- `helm-charts/tradevis/templates/ingress.yaml` - Ingress resource for the TradeVis application
 
 ## How it Works
 
@@ -46,17 +60,22 @@ If you want to use a custom domain:
 
 If you encounter issues:
 
-1. Check that the NGINX Ingress Controller is running:
+1. Check the status of ArgoCD applications:
+   ```
+   kubectl get applications -n argocd
+   ```
+
+2. Check that the NGINX Ingress Controller is running:
    ```
    kubectl get pods -n ingress-nginx
    ```
 
-2. Check the ingress resources:
+3. Check the ingress resources:
    ```
    kubectl get ingress --all-namespaces
    ```
 
-3. Check the NGINX Ingress Controller logs:
+4. Check the NGINX Ingress Controller logs:
    ```
    kubectl logs -n ingress-nginx -l app.kubernetes.io/component=controller
    ``` 
