@@ -128,9 +128,21 @@ sleep 60
 # Get node IP
 NODE_IP=$(sudo kubectl get nodes -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')
 
+# Apply ArgoCD Configuration
+echo "Applying ArgoCD Configuration..."
+sudo kubectl apply -f argocd/argocd-cm.yaml
+
 # Apply ArgoCD Ingress
 echo "Applying ArgoCD Ingress configuration..."
 sudo kubectl apply -f argocd/argocd-ingress.yaml
+
+# Restart ArgoCD server to pick up the new configuration
+echo "Restarting ArgoCD server..."
+sudo kubectl -n argocd rollout restart deployment argocd-server
+
+# Wait for ArgoCD server to restart
+echo "Waiting for ArgoCD server to restart (30 seconds)..."
+sleep 30
 
 # Set up temporary port forwarding for ArgoCD CLI to force sync applications
 echo "Setting up temporary port forwarding for ArgoCD CLI to sync applications..."
