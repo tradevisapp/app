@@ -11,6 +11,7 @@ metadata:
     chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
     release: {{ .Release.Name }}
 spec:
+  ingressClassName: nginx
   rules:
   - http:
       paths:

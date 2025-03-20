@@ -71,13 +71,15 @@ sudo kubectl get pods -n argocd
 
 # Install Nginx Ingress Controller (lightweight approach)
 echo "Installing Nginx Ingress Controller..."
-sudo helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
-sudo helm repo update
-sudo helm install ingress-nginx ingress-nginx/ingress-nginx --namespace ingress-nginx --create-namespace
+# Apply the Nginx Ingress Controller manifests specifically for Kind
+sudo kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
 
 # Wait for Nginx ingress controller to be ready
-echo "Waiting for Nginx Ingress Controller to be ready (30 seconds)..."
-sleep 30
+echo "Waiting for Nginx Ingress Controller to be ready..."
+sudo kubectl wait --namespace ingress-nginx \
+  --for=condition=ready pod \
+  --selector=app.kubernetes.io/component=controller \
+  --timeout=90s
 
 # Configure ArgoCD
 echo "Configuring ArgoCD..."
@@ -110,9 +112,6 @@ echo "ArgoCD is now available through Nginx Ingress at http://localhost/argocd"
 echo "Username: admin"
 echo "Password: adminadmin"
 
-# Wait for ArgoCD to synchronize the application
-echo "Waiting for ArgoCD to synchronize the application (this may take a minute)..."
-sleep 30
 
 echo "TradeVis application setup completed successfully with ArgoCD!"
 echo "You can access the application at http://localhost"
