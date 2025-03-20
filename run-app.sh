@@ -4,15 +4,6 @@ set -e
 DOCKERHUB_USERNAME="roeilevinson"
 export DOCKERHUB_USERNAME
 
-# Function to properly kill port-forwarding processes
-kill_port_forward() {
-  echo "Stopping port forwarding processes..."
-  # Kill any processes using port 8080
-  sudo kill $(sudo lsof -t -i:8080) 2>/dev/null || true
-  # Give it a moment to clean up
-  sleep 2
-}
-
 echo "Starting TradeVis application setup..."
 
 # Update system packages
@@ -67,7 +58,7 @@ echo "Installing ArgoCD..."
 sudo kubectl create namespace argocd
 # Create app namespace
 sudo kubectl create namespace app
-# Install ArgoCD components
+# Install ArgoCD components - fixed command to ensure proper installation
 sudo kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 
 # Give ArgoCD time to start up before checking its status
@@ -78,13 +69,24 @@ sleep 60
 echo "Verifying ArgoCD installation..."
 sudo kubectl get pods -n argocd
 
-# Apply ArgoCD Configuration
-echo "Applying ArgoCD Configuration..."
-sudo kubectl apply -f argocd/argocd-cm.yaml
+# Install Nginx Ingress Controller (lightweight approach)
+echo "Installing Nginx Ingress Controller..."
+sudo helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+sudo helm repo update
+sudo helm install ingress-nginx ingress-nginx/ingress-nginx --namespace ingress-nginx --create-namespace
+
+# Wait for Nginx ingress controller to be ready
+echo "Waiting for Nginx Ingress Controller to be ready (30 seconds)..."
+sleep 30
 
 # Configure ArgoCD
 echo "Configuring ArgoCD..."
 sudo kubectl apply -f argocd/argocd-install.yaml
+sudo kubectl apply -f argocd/argocd-application.yaml
+
+# Apply ArgoCD Ingress
+echo "Configuring ArgoCD Ingress..."
+sudo kubectl apply -f argocd/argocd-ingress.yaml
 
 # Get ArgoCD initial admin password
 ARGO_PASSWORD=$(sudo kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
@@ -95,15 +97,6 @@ echo "Installing ArgoCD CLI..."
 sudo curl -sSL -o /usr/local/bin/argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
 sudo chmod +x /usr/local/bin/argocd
 
-# Set up temporary port forwarding for ArgoCD CLI
-echo "Setting up temporary port forwarding for ArgoCD CLI..."
-sudo kubectl port-forward svc/argocd-server -n argocd 8080:443 --address 0.0.0.0 &
-PORT_FORWARD_PID=$!
-
-# Give port forwarding time to establish
-echo "Waiting for port forwarding to establish (5 seconds)..."
-sleep 5
-
 # Login to ArgoCD and update admin password
 echo "Updating ArgoCD admin password to 'adminadmin'..."
 argocd login localhost:8080 --username admin --password $ARGO_PASSWORD --insecure
@@ -113,63 +106,15 @@ echo "Setting new admin password..."
 argocd account update-password --current-password $ARGO_PASSWORD --new-password adminadmin
 
 echo "ArgoCD password has been reset to 'adminadmin'"
+echo "ArgoCD is now available through Nginx Ingress at http://localhost/argocd"
+echo "Username: admin"
+echo "Password: adminadmin"
 
-# Stop the temporary port forwarding
-kill_port_forward
-
-# Deploy NGINX Ingress Controller via ArgoCD
-echo "Deploying NGINX Ingress Controller via ArgoCD..."
-sudo kubectl apply -f argocd/nginx-ingress-application.yaml
-
-# Deploy TradeVis application via ArgoCD
-echo "Deploying TradeVis application via ArgoCD..."
-sudo kubectl apply -f argocd/argocd-application.yaml
-
-# Wait for applications to be synced
-echo "Waiting for applications to be synced (60 seconds)..."
-sleep 60
-
-# Get node IP
-NODE_IP=$(sudo kubectl get nodes -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')
-
-# Apply ArgoCD Ingress
-echo "Applying ArgoCD Ingress configuration..."
-sudo kubectl apply -f argocd/argocd-ingress.yaml
-
-# Restart ArgoCD server to pick up the new configuration
-echo "Restarting ArgoCD server..."
-sudo kubectl -n argocd rollout restart deployment argocd-server
-
-# Wait for ArgoCD server to restart
-echo "Waiting for ArgoCD server to restart (30 seconds)..."
+# Wait for ArgoCD to synchronize the application
+echo "Waiting for ArgoCD to synchronize the application (this may take a minute)..."
 sleep 30
 
-# Set up temporary port forwarding for ArgoCD CLI to force sync applications
-echo "Setting up temporary port forwarding for ArgoCD CLI to sync applications..."
-sudo kubectl port-forward svc/argocd-server -n argocd 8080:443 --address 0.0.0.0 &
-PORT_FORWARD_PID=$!
-
-# Give port forwarding time to establish
-echo "Waiting for port forwarding to establish (5 seconds)..."
-sleep 5
-
-# Force sync applications
-echo "Force syncing applications..."
-argocd login localhost:8080 --username admin --password adminadmin --insecure
-argocd app sync tradevis-app
-argocd app sync nginx-ingress
-
-# Stop the temporary port forwarding
-kill_port_forward
-
-# Wait for everything to be set up
-echo "Waiting for final setup (30 seconds)..."
-sleep 30
-
-echo "TradeVis application setup completed successfully with ArgoCD and NGINX Ingress!"
-echo "You can access the application at http://$NODE_IP:30080"
-echo "You can access ArgoCD at http://$NODE_IP:30080/argocd"
+echo "TradeVis application setup completed successfully with ArgoCD!"
+echo "You can access the application at http://localhost"
+echo "You can access ArgoCD at http://localhost/argocd"
 echo "You can check the application sync status with: kubectl get applications -n argocd"
-
-# Make sure no port forwarding is left running at the end
-kill_port_forward
