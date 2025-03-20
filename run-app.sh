@@ -107,6 +107,7 @@ nohup sudo kubectl port-forward svc/argocd-server -n argocd 8080:80 --address 0.
 # Frontend application
 nohup sudo kubectl port-forward svc/tradevis-frontend -n app 8081:80 --address 0.0.0.0 > $HOME/port-forward.log 2>&1 &
 
+
 echo "TradeVis application setup completed successfully with ArgoCD!"
 echo "You can access the application at http://localhost:8081"
 echo "You can access ArgoCD at http://localhost:8080"
