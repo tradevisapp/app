@@ -4,6 +4,15 @@ set -e
 DOCKERHUB_USERNAME="roeilevinson"
 export DOCKERHUB_USERNAME
 
+# Function to properly kill port-forwarding processes
+kill_port_forward() {
+  echo "Stopping port forwarding processes..."
+  # Kill any processes using port 8080
+  sudo kill $(sudo lsof -t -i:8080) 2>/dev/null || true
+  # Give it a moment to clean up
+  sleep 2
+}
+
 echo "Starting TradeVis application setup..."
 
 # Update system packages
@@ -102,8 +111,7 @@ argocd account update-password --current-password $ARGO_PASSWORD --new-password 
 echo "ArgoCD password has been reset to 'adminadmin'"
 
 # Stop the temporary port forwarding
-echo "Stopping temporary port forwarding..."
-sudo kill $PORT_FORWARD_PID
+kill_port_forward
 
 # Deploy NGINX Ingress Controller via ArgoCD
 echo "Deploying NGINX Ingress Controller via ArgoCD..."
@@ -124,6 +132,24 @@ NODE_IP=$(sudo kubectl get nodes -o jsonpath='{.items[0].status.addresses[?(@.ty
 echo "Applying ArgoCD Ingress configuration..."
 sudo kubectl apply -f argocd/argocd-ingress.yaml
 
+# Set up temporary port forwarding for ArgoCD CLI to force sync applications
+echo "Setting up temporary port forwarding for ArgoCD CLI to sync applications..."
+sudo kubectl port-forward svc/argocd-server -n argocd 8080:443 --address 0.0.0.0 &
+PORT_FORWARD_PID=$!
+
+# Give port forwarding time to establish
+echo "Waiting for port forwarding to establish (5 seconds)..."
+sleep 5
+
+# Force sync applications
+echo "Force syncing applications..."
+argocd login localhost:8080 --username admin --password adminadmin --insecure
+argocd app sync tradevis-app
+argocd app sync nginx-ingress
+
+# Stop the temporary port forwarding
+kill_port_forward
+
 # Wait for everything to be set up
 echo "Waiting for final setup (30 seconds)..."
 sleep 30
@@ -132,3 +158,6 @@ echo "TradeVis application setup completed successfully with ArgoCD and NGINX In
 echo "You can access the application at http://$NODE_IP:30080"
 echo "You can access ArgoCD at http://$NODE_IP:30080/argocd"
 echo "You can check the application sync status with: kubectl get applications -n argocd"
+
+# Make sure no port forwarding is left running at the end
+kill_port_forward
