@@ -87,25 +87,21 @@ sudo kubectl wait --namespace ingress-nginx \
 
 # Configure ArgoCD
 echo "Configuring ArgoCD..."
-sudo kubectl apply -f app/argocd/argocd-install.yaml
-sudo kubectl apply -f app/argocd/argocd-application.yaml
+sudo kubectl apply -f argocd/argocd-install.yaml
+sudo kubectl apply -f argocd/argocd-application.yaml
 
 # Apply ArgoCD ConfigMap to disable HTTPS
 echo "Configuring ArgoCD to use HTTP..."
-sudo kubectl apply -f app/argocd/argocd-cm.yaml
+sudo kubectl apply -f argocd/argocd-cm.yaml
 sudo kubectl -n argocd rollout restart deployment argocd-server
-
-# Make ArgoCD server accessible via LoadBalancer
-echo "Making ArgoCD server accessible via LoadBalancer..."
-sudo kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "LoadBalancer"}}'
 
 # Wait for ArgoCD server to restart
 echo "Waiting for ArgoCD server to restart..."
-sleep 30
+sleep 10
 
 # Apply ArgoCD Ingress
 echo "Configuring ArgoCD Ingress..."
-sudo kubectl apply -f app/argocd/argocd-ingress.yaml
+sudo kubectl apply -f argocd/argocd-ingress.yaml
 
 # Get ArgoCD initial admin password
 ARGO_PASSWORD=$(sudo kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
@@ -116,10 +112,6 @@ echo "Installing ArgoCD CLI..."
 sudo curl -sSL -o /usr/local/bin/argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
 sudo chmod +x /usr/local/bin/argocd
 
-# Setup port forwarding as a backup access method
-echo "Setting up port forwarding for ArgoCD (accessible at https://localhost:8080)..."
-sudo kubectl port-forward svc/argocd-server -n argocd 8080:443 &
-
 # Login to ArgoCD and update admin password
 #echo "Updating ArgoCD admin password to 'adminadmin'..."
 #argocd login localhost:8080 --username admin --password $ARGO_PASSWORD --insecure
@@ -129,12 +121,9 @@ sudo kubectl port-forward svc/argocd-server -n argocd 8080:443 &
 #argocd account update-password --current-password $ARGO_PASSWORD --new-password adminadmin
 
 echo "ArgoCD password has been reset to 'adminadmin'"
-echo "ArgoCD is now accessible through multiple methods:"
-echo "1. Via Nginx Ingress at http://localhost/argocd"
-echo "2. Via LoadBalancer service"
-echo "3. Via port forwarding at https://localhost:8080"
+echo "ArgoCD is now available through Nginx Ingress at http://localhost/argocd"
 echo "Username: admin"
-echo "Password: $ARGO_PASSWORD"
+echo "Password: adminadmin"
 
 
 echo "TradeVis application setup completed successfully with ArgoCD!"
