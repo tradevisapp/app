@@ -3,9 +3,6 @@ kind: Application
 metadata:
   name: tradevis-app
   namespace: argocd
-  annotations:
-    argocd-image-updater.argoproj.io/image-list: roeilevinson/tradevis-frontend:latest
-    argocd-image-updater.argoproj.io/tradevis-frontend.update-strategy: latest
 spec:
   project: default
   source:
@@ -15,13 +12,6 @@ spec:
     helm:
       valueFiles:
         - values.yaml
-      parameters:
-        - name: image.pullPolicy
-          value: Always
-        - name: service.type
-          value: NodePort
-      releaseName: tradevis
-      version: v3
   destination:
     server: https://kubernetes.default.svc
     namespace: app

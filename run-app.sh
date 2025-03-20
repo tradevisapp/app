@@ -142,8 +142,38 @@ if [[ $install_updater == "y" || $install_updater == "Y" ]]; then
 fi
 
 # Set up port forwarding for the frontend service
+echo "Waiting for tradevis-frontend service to be ready..."
+MAX_RETRIES=30
+RETRY_COUNT=0
+while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+  if sudo kubectl get svc tradevis-frontend -n app &>/dev/null; then
+    echo "Service tradevis-frontend found in namespace app."
+    break
+  fi
+  echo "Service not ready yet, waiting... ($RETRY_COUNT/$MAX_RETRIES)"
+  RETRY_COUNT=$((RETRY_COUNT+1))
+  sleep 10
+done
+
+if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
+  echo "WARNING: Service tradevis-frontend not found after maximum retries. Port forwarding may fail."
+  echo "You can manually set up port forwarding later with:"
+  echo "sudo kubectl port-forward svc/tradevis-frontend -n app 8081:80 --address 0.0.0.0"
+fi
+
 echo "Setting up port forwarding for the application..."
 nohup sudo kubectl port-forward svc/tradevis-frontend -n app 8081:80 --address 0.0.0.0 > $HOME/port-forward.log 2>&1 &
+
+# Check if port forwarding was successful
+sleep 5
+if ps aux | grep "[p]ort-forward.*tradevis-frontend" > /dev/null; then
+  echo "Port forwarding for tradevis-frontend set up successfully."
+else
+  echo "WARNING: Port forwarding for tradevis-frontend might have failed."
+  echo "Check logs at $HOME/port-forward.log for details."
+  echo "You can manually set up port forwarding with:"
+  echo "sudo kubectl port-forward svc/tradevis-frontend -n app 8081:80 --address 0.0.0.0"
+fi
 
 echo "TradeVis application setup completed successfully with ArgoCD!"
 echo "You can access the application at http://localhost:8081"
