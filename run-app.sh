@@ -76,9 +76,25 @@ nohup sudo kubectl port-forward deployment/argocd-application-controller -n argo
 
 # Get ArgoCD initial admin password
 ARGO_PASSWORD=$(sudo kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
+echo "ArgoCD initial admin password is: $ARGO_PASSWORD"
+
+# Install argocd CLI
+echo "Installing ArgoCD CLI..."
+sudo curl -sSL -o /usr/local/bin/argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+sudo chmod +x /usr/local/bin/argocd
+
+# Login to ArgoCD and update admin password
+echo "Updating ArgoCD admin password to 'admin'..."
+argocd login localhost:8080 --username admin --password $ARGO_PASSWORD --insecure
+
+# Update the password to 'admin'
+echo "Setting new admin password..."
+argocd account update-password --current-password $ARGO_PASSWORD --new-password admin
+
+echo "ArgoCD password has been reset to 'admin'"
 echo "ArgoCD is available at http://localhost:8080"
 echo "Username: admin"
-echo "Password: $ARGO_PASSWORD"
+echo "Password: admin"
 
 # Wait for ArgoCD to synchronize the application
 echo "Waiting for ArgoCD to synchronize the application (this may take a minute)..."
@@ -89,7 +105,7 @@ echo "Setting up port forwarding for the application..."
 nohup sudo kubectl port-forward svc/tradevis-frontend -n app 8081:80 --address 0.0.0.0 > $HOME/port-forward.log 2>&1 &
 
 echo "TradeVis application setup completed successfully with ArgoCD!"
-echo "You can access the application at http://localhost or http://$(curl -s ifconfig.me)"
+echo "You can access the application at http://localhost:8081"
 echo "You can access ArgoCD at http://localhost:8080"
 echo "ArgoCD controller metrics are available at http://localhost:8090/metrics"
 echo "You can check the application sync status with: kubectl get applications -n argocd"
