@@ -12,10 +12,15 @@ image:
   pullPolicy: Always
 # Service configurations
 service:
-  type: NodePort
+  type: ClusterIP
   port: 80
   targetPort: 80
   nodePort: 30080
+# Ingress configuration
+ingress:
+  enabled: true
+  className: nginx
+  host: ""
 # Namespace configuration
 namespace: app
 # Resource limits

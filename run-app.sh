@@ -52,6 +52,11 @@ sudo kind create cluster --name tradevis-cluster --config kind-config.yaml
 sudo kubectl cluster-info --context kind-tradevis-cluster
 echo "Kind cluster created successfully"
 
+# Install NGINX Ingress Controller
+echo "Installing NGINX Ingress Controller..."
+chmod +x install-nginx-ingress.sh
+./install-nginx-ingress.sh
+
 # Install ArgoCD
 echo "Installing ArgoCD..."
 # Create namespace
@@ -92,23 +97,39 @@ echo "Setting new admin password..."
 argocd account update-password --current-password $ARGO_PASSWORD --new-password adminadmin
 
 echo "ArgoCD password has been reset to 'adminadmin'"
-echo "ArgoCD is available at http://localhost:8080"
-echo "Username: admin"
-echo "Password: adminadmin"
+
+# Get node IP
+NODE_IP=$(sudo kubectl get nodes -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')
+
+# Create Ingress for ArgoCD
+cat <<EOF | sudo kubectl apply -f -
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: argocd-server-ingress
+  namespace: argocd
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /argocd
+        pathType: Prefix
+        backend:
+          service:
+            name: argocd-server
+            port:
+              number: 80
+EOF
 
 # Wait for ArgoCD to synchronize the application
 echo "Waiting for ArgoCD to synchronize the application (this may take a minute)..."
 sleep 30
 
-# Set up port forwarding
-echo "Setting up port forwarding..."
-# ArgoCD UI
-nohup sudo kubectl port-forward svc/argocd-server -n argocd 8080:80 --address 0.0.0.0 > $HOME/argocd-port-forward.log 2>&1 &
-# Frontend application
-nohup sudo kubectl port-forward svc/tradevis-frontend -n app 8081:80 --address 0.0.0.0 > $HOME/port-forward.log 2>&1 &
-
-
-echo "TradeVis application setup completed successfully with ArgoCD!"
-echo "You can access the application at http://localhost:8081"
-echo "You can access ArgoCD at http://localhost:8080"
+echo "TradeVis application setup completed successfully with ArgoCD and NGINX Ingress!"
+echo "You can access the application at http://$NODE_IP:30080"
+echo "You can access ArgoCD at http://$NODE_IP:30080/argocd"
 echo "You can check the application sync status with: kubectl get applications -n argocd"
