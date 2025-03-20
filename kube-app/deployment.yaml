@@ -16,7 +16,6 @@ spec:
       containers:
       - name: tradevis-frontend
         image: roeilevinson/tradevis-frontend:latest
-        imagePullPolicy: Always
         ports:
         - containerPort: 80
 ---

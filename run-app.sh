@@ -66,10 +66,6 @@ echo "Configuring ArgoCD..."
 sudo kubectl apply -f argocd/argocd-install.yaml
 sudo kubectl apply -f argocd/argocd-application.yaml
 
-# Install ArgoCD Image Updater
-echo "Installing ArgoCD Image Updater..."
-sudo kubectl apply -f argocd/argocd-image-updater.yaml
-
 # Set up port forwarding for ArgoCD UI
 echo "Setting up port forwarding for ArgoCD UI..."
 nohup sudo kubectl port-forward svc/argocd-server -n argocd 8080:80 --address 0.0.0.0 > $HOME/argocd-port-forward.log 2>&1 &
