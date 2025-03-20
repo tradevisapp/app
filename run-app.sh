@@ -84,17 +84,17 @@ sudo curl -sSL -o /usr/local/bin/argocd https://github.com/argoproj/argo-cd/rele
 sudo chmod +x /usr/local/bin/argocd
 
 # Login to ArgoCD and update admin password
-echo "Updating ArgoCD admin password to 'admin'..."
+echo "Updating ArgoCD admin password to 'adminadmin'..."
 argocd login localhost:8080 --username admin --password $ARGO_PASSWORD --insecure
 
-# Update the password to 'admin'
+# Update the password to 'adminadmin' (need minimum 8 characters for ArgoCD password)
 echo "Setting new admin password..."
-argocd account update-password --current-password $ARGO_PASSWORD --new-password admin
+argocd account update-password --current-password $ARGO_PASSWORD --new-password adminadmin
 
-echo "ArgoCD password has been reset to 'admin'"
+echo "ArgoCD password has been reset to 'adminadmin'"
 echo "ArgoCD is available at http://localhost:8080"
 echo "Username: admin"
-echo "Password: admin"
+echo "Password: adminadmin"
 
 # Wait for ArgoCD to synchronize the application
 echo "Waiting for ArgoCD to synchronize the application (this may take a minute)..."
