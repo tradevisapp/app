@@ -103,7 +103,7 @@ echo "ArgoCD password has been reset to 'adminadmin'"
 
 # Stop the temporary port forwarding
 echo "Stopping temporary port forwarding..."
-kill $PORT_FORWARD_PID
+sudo kill $PORT_FORWARD_PID
 
 # Deploy NGINX Ingress Controller via ArgoCD
 echo "Deploying NGINX Ingress Controller via ArgoCD..."
