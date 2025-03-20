@@ -7,5 +7,6 @@ metadata:
     app.kubernetes.io/name: argocd-cm
     app.kubernetes.io/part-of: argocd
 data:
-  url: "http://localhost:30080/argocd"
-  application.instanceLabelKey: argocd.argoproj.io/instance 
+  url: http://localhost:30080
+  application.instanceLabelKey: argocd.argoproj.io/instance
+  server.rootpath: /argocd 

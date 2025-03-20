@@ -78,6 +78,10 @@ sleep 60
 echo "Verifying ArgoCD installation..."
 sudo kubectl get pods -n argocd
 
+# Apply ArgoCD Configuration
+echo "Applying ArgoCD Configuration..."
+sudo kubectl apply -f argocd/argocd-cm.yaml
+
 # Configure ArgoCD
 echo "Configuring ArgoCD..."
 sudo kubectl apply -f argocd/argocd-install.yaml
@@ -127,10 +131,6 @@ sleep 60
 
 # Get node IP
 NODE_IP=$(sudo kubectl get nodes -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')
-
-# Apply ArgoCD Configuration
-echo "Applying ArgoCD Configuration..."
-sudo kubectl apply -f argocd/argocd-cm.yaml
 
 # Apply ArgoCD Ingress
 echo "Applying ArgoCD Ingress configuration..."
