@@ -3,6 +3,10 @@ kind: Application
 metadata:
   name: tradevis-app
   namespace: argocd
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: roeilevinson/tradevis-frontend:latest
+    argocd-image-updater.argoproj.io/roeilevinson/tradevis-frontend.update-strategy: digest
+    argocd-image-updater.argoproj.io/roeilevinson/tradevis-frontend.force-update: "true"
 spec:
   project: default
   source:
