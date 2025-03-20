@@ -48,6 +48,10 @@ echo "Kind installed successfully"
 echo "Creating Kind cluster..."
 sudo kind create cluster --name tradevis-cluster --config kind-config.yaml
 
+# Set kubectl context to use the Kind cluster
+echo "Setting kubectl context to use the Kind cluster..."
+sudo kubectl config use-context kind-tradevis-cluster
+
 # Verify cluster is running
 sudo kubectl cluster-info --context kind-tradevis-cluster
 echo "Kind cluster created successfully"
@@ -85,6 +89,15 @@ sudo kubectl wait --namespace ingress-nginx \
 echo "Configuring ArgoCD..."
 sudo kubectl apply -f argocd/argocd-install.yaml
 sudo kubectl apply -f argocd/argocd-application.yaml
+
+# Apply ArgoCD ConfigMap to disable HTTPS
+echo "Configuring ArgoCD to use HTTP..."
+sudo kubectl apply -f argocd/argocd-cm.yaml
+sudo kubectl -n argocd rollout restart deployment argocd-server
+
+# Wait for ArgoCD server to restart
+echo "Waiting for ArgoCD server to restart..."
+sleep 10
 
 # Apply ArgoCD Ingress
 echo "Configuring ArgoCD Ingress..."
