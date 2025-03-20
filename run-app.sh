@@ -74,14 +74,6 @@ echo "Configuring ArgoCD..."
 sudo kubectl apply -f argocd/argocd-install.yaml
 sudo kubectl apply -f argocd/argocd-application.yaml
 
-# Set up port forwarding for ArgoCD UI
-echo "Setting up port forwarding for ArgoCD UI..."
-nohup sudo kubectl port-forward svc/argocd-server -n argocd 8080:80 --address 0.0.0.0 > $HOME/argocd-port-forward.log 2>&1 &
-
-# Add additional port forwarding for ArgoCD to application-controller
-echo "Setting up additional port forwarding for ArgoCD controller..."
-nohup sudo kubectl port-forward deployment/argocd-application-controller -n argocd 8090:8080 --address 0.0.0.0 > $HOME/argocd-controller-forward.log 2>&1 &
-
 # Get ArgoCD initial admin password
 ARGO_PASSWORD=$(sudo kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
 echo "ArgoCD initial admin password is: $ARGO_PASSWORD"
@@ -108,95 +100,14 @@ echo "Password: adminadmin"
 echo "Waiting for ArgoCD to synchronize the application (this may take a minute)..."
 sleep 30
 
-# Check if ArgoCD Image Updater should be installed
-read -p "Do you want to install ArgoCD Image Updater to automatically detect new Docker images? (y/n): " install_updater
-if [[ $install_updater == "y" || $install_updater == "Y" ]]; then
-  echo "Installing ArgoCD Image Updater..."
-  # Create ArgoCD Image Updater namespace
-  sudo kubectl create namespace argocd-image-updater
-  
-  # Install ArgoCD Image Updater
-  sudo kubectl apply -n argocd-image-updater -f https://raw.githubusercontent.com/argoproj-labs/argocd-image-updater/stable/manifests/install.yaml
-  
-  # Wait for ArgoCD Image Updater to start
-  echo "Waiting for ArgoCD Image Updater to start (30 seconds)..."
-  sleep 30
-  
-  # Verify ArgoCD Image Updater components are running
-  echo "Verifying ArgoCD Image Updater installation..."
-  sudo kubectl get pods -n argocd-image-updater
-  
-  # Add annotations to the ArgoCD application for image updates
-  echo "Adding image update annotations to ArgoCD application..."
-  sudo kubectl patch application tradevis-app -n argocd -p '{
-    "metadata": {
-      "annotations": {
-        "argocd-image-updater.argoproj.io/image-list": "roeilevinson/tradevis-frontend:latest",
-        "argocd-image-updater.argoproj.io/tradevis-frontend.update-strategy": "latest"
-      }
-    }
-  }' --type merge
-  
-  echo "ArgoCD Image Updater installed successfully!"
-  echo "It will automatically check for new images with the 'latest' tag."
-fi
-
-# Set up port forwarding for the frontend service
-echo "Waiting for tradevis-frontend service to be ready..."
-MAX_RETRIES=30
-RETRY_COUNT=0
-while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
-  if sudo kubectl get svc tradevis-frontend -n app &>/dev/null; then
-    echo "Service tradevis-frontend found in namespace app."
-    break
-  fi
-  echo "Service not ready yet, waiting... ($RETRY_COUNT/$MAX_RETRIES)"
-  RETRY_COUNT=$((RETRY_COUNT+1))
-  sleep 10
-done
-
-if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
-  echo "WARNING: Service tradevis-frontend not found after maximum retries. Port forwarding may fail."
-  echo "You can manually set up port forwarding later with:"
-  echo "sudo kubectl port-forward svc/tradevis-frontend -n app 8081:80 --address 0.0.0.0"
-fi
-
-echo "Setting up port forwarding for the application..."
+# Set up port forwarding
+echo "Setting up port forwarding..."
+# ArgoCD UI
+nohup sudo kubectl port-forward svc/argocd-server -n argocd 8080:80 --address 0.0.0.0 > $HOME/argocd-port-forward.log 2>&1 &
+# Frontend application
 nohup sudo kubectl port-forward svc/tradevis-frontend -n app 8081:80 --address 0.0.0.0 > $HOME/port-forward.log 2>&1 &
-
-# Check if port forwarding was successful
-sleep 5
-if ps aux | grep "[p]ort-forward.*tradevis-frontend" > /dev/null; then
-  echo "Port forwarding for tradevis-frontend set up successfully."
-else
-  echo "WARNING: Port forwarding for tradevis-frontend might have failed."
-  echo "Check logs at $HOME/port-forward.log for details."
-  echo "You can manually set up port forwarding with:"
-  echo "sudo kubectl port-forward svc/tradevis-frontend -n app 8081:80 --address 0.0.0.0"
-fi
 
 echo "TradeVis application setup completed successfully with ArgoCD!"
 echo "You can access the application at http://localhost:8081"
 echo "You can access ArgoCD at http://localhost:8080"
-echo "ArgoCD controller metrics are available at http://localhost:8090/metrics"
 echo "You can check the application sync status with: kubectl get applications -n argocd"
-
-# Add instructions for manual Helm usage
-echo "
-=== Helm Chart Manual Usage ===
-You can also manage the application directly with Helm:
-
-# To install the chart locally (outside of ArgoCD):
-helm install tradevis ./helm-charts/tradevis
-
-# To upgrade the deployment with a new image tag:
-helm upgrade tradevis ./helm-charts/tradevis --set image.tag=v1.0.1
-
-# To force a refresh of the latest image:
-kubectl rollout restart deployment tradevis-frontend -n app
-
-# To view the Helm release status:
-helm list
-"
-
-
