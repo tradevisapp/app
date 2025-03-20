@@ -82,6 +82,15 @@ echo "Installing ArgoCD CLI..."
 sudo curl -sSL -o /usr/local/bin/argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
 sudo chmod +x /usr/local/bin/argocd
 
+# Set up temporary port forwarding for ArgoCD CLI
+echo "Setting up temporary port forwarding for ArgoCD CLI..."
+sudo kubectl port-forward svc/argocd-server -n argocd 8080:443 --address 0.0.0.0 &
+PORT_FORWARD_PID=$!
+
+# Give port forwarding time to establish
+echo "Waiting for port forwarding to establish (5 seconds)..."
+sleep 5
+
 # Login to ArgoCD and update admin password
 echo "Updating ArgoCD admin password to 'adminadmin'..."
 argocd login localhost:8080 --username admin --password $ARGO_PASSWORD --insecure
@@ -91,6 +100,10 @@ echo "Setting new admin password..."
 argocd account update-password --current-password $ARGO_PASSWORD --new-password adminadmin
 
 echo "ArgoCD password has been reset to 'adminadmin'"
+
+# Stop the temporary port forwarding
+echo "Stopping temporary port forwarding..."
+kill $PORT_FORWARD_PID
 
 # Deploy NGINX Ingress Controller via ArgoCD
 echo "Deploying NGINX Ingress Controller via ArgoCD..."
