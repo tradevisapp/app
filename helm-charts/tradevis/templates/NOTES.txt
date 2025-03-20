@@ -1,0 +1,18 @@
+Thank you for installing {{ .Chart.Name }}.
+
+Your TradeVis application has been deployed successfully!
+
+To access the application:
+{{- if contains "NodePort" .Values.service.type }}
+  export NODE_PORT=$(kubectl get --namespace {{ .Values.namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ .Values.deployment.name }})
+  export NODE_IP=$(kubectl get nodes --namespace {{ .Values.namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+  echo http://$NODE_IP:$NODE_PORT
+{{- else if contains "LoadBalancer" .Values.service.type }}
+  NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+        You can watch the status by running 'kubectl get --namespace {{ .Values.namespace }} svc -w {{ .Values.deployment.name }}'
+  export SERVICE_IP=$(kubectl get svc --namespace {{ .Values.namespace }} {{ .Values.deployment.name }} --template "{{ "{{ range (index .status.loadBalancer.ingress 0) }}{{ . }}{{ end }}" }}")
+  echo http://$SERVICE_IP:{{ .Values.service.port }}
+{{- else if contains "ClusterIP" .Values.service.type }}
+  kubectl port-forward --namespace {{ .Values.namespace }} svc/{{ .Values.deployment.name }} {{ .Values.service.port }}:{{ .Values.service.port }}
+  echo "Access your application at http://localhost:{{ .Values.service.port }}"
+{{- end }} 

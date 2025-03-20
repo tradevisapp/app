@@ -1,0 +1,33 @@
+# Default values for the TradeVis application
+nameOverride: ""
+fullnameOverride: ""
+
+# Deployment configurations
+deployment:
+  name: tradevis-frontend
+  replicas: 2
+
+# Image configurations
+image:
+  repository: roeilevinson/tradevis-frontend
+  tag: latest
+  pullPolicy: Always
+
+# Service configurations
+service:
+  type: NodePort
+  port: 80
+  targetPort: 80
+  nodePort: 30080
+
+# Namespace configuration
+namespace: app
+
+# Resource limits
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi 
