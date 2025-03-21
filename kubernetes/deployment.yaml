@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tradevis-frontend
+  namespace: app
+  labels:
+    app: tradevis-frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: tradevis-frontend
+  template:
+    metadata:
+      labels:
+        app: tradevis-frontend
+    spec:
+      containers:
+      - name: tradevis-frontend
+        image: "roeilevinson/tradevis-frontend:v0.1.20"
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+        resources:
+          limits:
+            cpu: 500m
+            memory: 512Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi 
