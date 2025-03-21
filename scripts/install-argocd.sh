@@ -10,7 +10,7 @@ sudo kubectl create namespace app
 sudo kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 
 # Give ArgoCD time to start up before checking its status
-echo "Waiting for ArgoCD to start (60 seconds)..."
+echo "Waiting for ArgoCD to start..."
 sleep 20
 
 # Verify ArgoCD components are running
