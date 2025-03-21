@@ -3,7 +3,7 @@
 
 echo "Configuring ArgoCD..."
 sudo kubectl apply -f argocd/argocd-install.yaml
-sudo kubectl apply -f argocd/argocd-application.yaml
+#sudo kubectl apply -f argocd/argocd-application.yaml
 
 # Apply ArgoCD ConfigMap to disable HTTPS
 echo "Configuring ArgoCD to use HTTP..."
