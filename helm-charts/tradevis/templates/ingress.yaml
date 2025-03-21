@@ -19,6 +19,6 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: tradevis
+            name: tradevis-frontend
             port:
               number: 80 
