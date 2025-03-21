@@ -1,16 +1,15 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: argocd-server-ingress
+  name: argocd-ingress
   namespace: argocd
   annotations:
-    kubernetes.io/ingress.class: nginx
-    nginx.ingress.kubernetes.io/force-ssl-redirect: "false"
-    nginx.ingress.kubernetes.io/ssl-redirect: "false"
-    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+    nginx.ingress.kubernetes.io/ssl-redirect: "false" # Disable HTTPS redirect if no TLS
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS" # Ensure HTTPS is used for ArgoCD
 spec:
+  ingressClassName: nginx
   rules:
-  - host: argocd.tradevis.click
+  - host: argocd.tradevis.click  # Your domain
     http:
       paths:
       - path: /
@@ -19,4 +18,4 @@ spec:
           service:
             name: argocd-server
             port:
-              number: 80 
+              number: 80  # Matches the service port
