@@ -7,7 +7,19 @@ sudo kubectl apply -f argocd/argocd-application.yaml
 
 # Apply ArgoCD ConfigMap to disable HTTPS
 echo "Configuring ArgoCD to use HTTP..."
-sudo kubectl apply -f argocd/argocd-cm.yaml
+cat <<EOF | sudo kubectl apply -f -
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    app.kubernetes.io/name: argocd-cmd-params-cm
+    app.kubernetes.io/part-of: argocd
+  name: argocd-cmd-params-cm
+  namespace: argocd
+data:
+  server.insecure: "true"
+EOF
+
 sudo kubectl -n argocd rollout restart deployment argocd-server
 
 # Wait for ArgoCD server to restart
@@ -15,7 +27,7 @@ echo "Waiting for ArgoCD server to restart..."
 sleep 10
 
 # Apply ArgoCD Ingress
-echo "Configuring ArgoCD Ingress..."
+echo "Configuring ArgoCD Ingress with HTTP only..."
 sudo kubectl apply -f argocd/argocd-ingress.yaml
 
 # Get ArgoCD initial admin password
@@ -24,13 +36,13 @@ echo "ArgoCD initial admin password is: $ARGO_PASSWORD"
 
 # Login to ArgoCD and update admin password (commented out for manual execution)
 #echo "Updating ArgoCD admin password to 'adminadmin'..."
-#argocd login localhost:8080 --username admin --password $ARGO_PASSWORD --insecure
+#argocd login tradevis.click --username admin --password $ARGO_PASSWORD --insecure
 
 # Update the password to 'adminadmin' (need minimum 8 characters for ArgoCD password)
 #echo "Setting new admin password..."
 #argocd account update-password --current-password $ARGO_PASSWORD --new-password adminadmin
 
-echo "ArgoCD password has been reset to 'adminadmin'"
-echo "ArgoCD is now available through Nginx Ingress at http://localhost/argocd"
+echo "ArgoCD password has been retrieved"
+echo "ArgoCD is now available through Nginx Ingress at http://tradevis.click"
 echo "Username: admin"
-echo "Password: adminadmin" 
+echo "Password: Use the password shown above" 

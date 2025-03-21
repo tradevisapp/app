@@ -19,5 +19,5 @@ source ./scripts/configure-argocd.sh
 
 echo "TradeVis application setup completed successfully with ArgoCD!"
 echo "You can access the application at http://localhost"
-echo "You can access ArgoCD at http://localhost/argocd"
+echo "You can access ArgoCD at http://tradevis.click"
 echo "You can check the application sync status with: kubectl get applications -n argocd" 
