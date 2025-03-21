@@ -11,7 +11,7 @@ sudo kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-
 
 # Give ArgoCD time to start up before checking its status
 echo "Waiting for ArgoCD to start (60 seconds)..."
-sleep 60
+sleep 20
 
 # Verify ArgoCD components are running
 echo "Verifying ArgoCD installation..."
