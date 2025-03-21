@@ -7,19 +7,7 @@ sudo kubectl apply -f argocd/argocd-application.yaml
 
 # Apply ArgoCD ConfigMap to disable HTTPS
 echo "Configuring ArgoCD to use HTTP..."
-cat <<EOF | sudo kubectl apply -f -
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  labels:
-    app.kubernetes.io/name: argocd-cmd-params-cm
-    app.kubernetes.io/part-of: argocd
-  name: argocd-cmd-params-cm
-  namespace: argocd
-data:
-  server.insecure: "true"
-EOF
-
+sudo kubectl apply -f argocd/argocd-cm.yaml
 sudo kubectl -n argocd rollout restart deployment argocd-server
 
 # Wait for ArgoCD server to restart
