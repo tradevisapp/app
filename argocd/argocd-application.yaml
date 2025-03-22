@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: https://github.com/tradevisapp/app.git
     targetRevision: HEAD
-    path: helm-charts/tradevis
+    path: charts/app
     helm:
       valueFiles:
         - values.yaml

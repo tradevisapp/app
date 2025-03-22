@@ -1,0 +1,19 @@
+Thank you for installing {{ .Chart.Name }}.
+
+Your application has been deployed with the following configurations:
+
+Application name: {{ .Values.deployment.name }}
+Namespace: {{ .Values.namespace.name }}
+Replicas: {{ .Values.deployment.replicas }}
+
+{{- if .Values.ingress.enabled }}
+You can access your application at:
+  http://{{ .Values.ingress.host }}
+{{- else }}
+You can access your application using port-forward:
+  kubectl port-forward -n {{ .Values.namespace.name }} svc/{{ .Values.service.name }} {{ .Values.service.port }}:{{ .Values.service.port }}
+  Then visit http://localhost:{{ .Values.service.port }}
+{{- end }}
+
+To get more details about the deployment:
+  kubectl get all -n {{ .Values.namespace.name }} 

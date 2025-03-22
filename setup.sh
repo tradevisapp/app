@@ -15,7 +15,7 @@ source ./scripts/install-kind.sh
 source ./scripts/setup-kind-cluster.sh
 source ./scripts/install-argocd.sh
 source ./scripts/install-nginx-ingress.sh
-#source ./scripts/configure-argocd.sh
+source ./scripts/configure-argocd.sh
 
 echo "TradeVis application setup completed successfully with ArgoCD!"
 echo "You can access the application at http://localhost"
