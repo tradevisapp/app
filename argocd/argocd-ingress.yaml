@@ -5,7 +5,7 @@ metadata:
   namespace: argocd
   annotations:
     nginx.ingress.kubernetes.io/ssl-redirect: "false" # Disable HTTPS redirect if no TLS
-    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS" # Ensure HTTPS is used for ArgoCD
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTP" # Ensure HTTPS is used for ArgoCD
 spec:
   ingressClassName: nginx
   rules:
