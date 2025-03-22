@@ -14,6 +14,8 @@ spec:
     metadata:
       labels:
         app: {{ .Values.deployment.name }}
+      annotations:
+        rollme: {{ .Values.deployment.image.tag | quote }}
     spec:
       containers:
       - name: {{ .Values.deployment.name }}
