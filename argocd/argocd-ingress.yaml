@@ -6,6 +6,11 @@ metadata:
   annotations:
     nginx.ingress.kubernetes.io/ssl-redirect: "false" # Disable HTTPS redirect if no TLS
     nginx.ingress.kubernetes.io/backend-protocol: "HTTP" # Ensure HTTPS is used for ArgoCD
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/ssl-passthrough: "false"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "30"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "1800"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "1800"
 spec:
   ingressClassName: nginx
   rules:
