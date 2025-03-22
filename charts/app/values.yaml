@@ -1,17 +1,15 @@
 # Default values for the app chart
 nameOverride: ""
 fullnameOverride: ""
-
 namespace:
   create: true
   name: app
-
 deployment:
   name: tradevis-frontend
   replicas: 2
   image:
     repository: roeilevinson/tradevis-frontend
-    tag: v0.1.20
+    tag: v0.1.22
     pullPolicy: Always
   resources:
     limits:
@@ -21,14 +19,12 @@ deployment:
       cpu: 100m
       memory: 128Mi
   containerPort: 80
-
 service:
   name: tradevis-frontend
   type: NodePort
   port: 80
   targetPort: 80
   nodePort: 30080
-
 ingress:
   enabled: true
   name: tradevis-ingress
@@ -37,4 +33,4 @@ ingress:
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
   host: tradevis.click
   path: /
-  pathType: Prefix 
+  pathType: Prefix
