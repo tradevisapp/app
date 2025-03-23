@@ -9,7 +9,7 @@ deployment:
   replicas: 2
   image:
     repository: roeilevinson/tradevis-frontend
-    tag: v0.1.26
+    tag: v0.1.29
     pullPolicy: Always
   resources:
     limits:
