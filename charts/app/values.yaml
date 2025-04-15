@@ -86,6 +86,7 @@ ingress:
     path: /api
     pathType: Prefix
 
-# Auth0 Secret (to be created separately via kubectl)
+# Auth0 Secret (created from environment variables)
 auth0:
-  createSecret: false  # Set to true if you want the chart to create the secret
+  createSecret: true  # Chart will create the secret using environment variables
+
