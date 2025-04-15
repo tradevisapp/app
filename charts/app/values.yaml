@@ -1,9 +1,7 @@
 # Default values for the app chart
 nameOverride: ""
 fullnameOverride: ""
-namespace:
-  create: true
-  name: app
+
 
 # Frontend configuration
 frontend:
