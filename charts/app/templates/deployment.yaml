@@ -1,32 +1,78 @@
+---
+# Frontend deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Values.deployment.name }}
+  name: {{ .Values.frontend.deployment.name }}
   namespace: {{ .Values.namespace.name }}
   labels:
-    app: {{ .Values.deployment.name }}
+    app: {{ .Values.frontend.deployment.name }}
 spec:
-  replicas: {{ .Values.deployment.replicas }}
+  replicas: {{ .Values.frontend.deployment.replicas }}
   selector:
     matchLabels:
-      app: {{ .Values.deployment.name }}
+      app: {{ .Values.frontend.deployment.name }}
   template:
     metadata:
       labels:
-        app: {{ .Values.deployment.name }}
+        app: {{ .Values.frontend.deployment.name }}
       annotations:
-        rollme: {{ .Values.deployment.image.tag | quote }}
+        rollme: {{ .Values.frontend.deployment.image.tag | quote }}
     spec:
       containers:
-      - name: {{ .Values.deployment.name }}
-        image: "{{ .Values.deployment.image.repository }}:{{ .Values.deployment.image.tag }}"
-        imagePullPolicy: {{ .Values.deployment.image.pullPolicy }}
+      - name: {{ .Values.frontend.deployment.name }}
+        image: "{{ .Values.frontend.deployment.image.repository }}:{{ .Values.frontend.deployment.image.tag }}"
+        imagePullPolicy: {{ .Values.frontend.deployment.image.pullPolicy }}
         ports:
-        - containerPort: {{ .Values.deployment.containerPort }}
+        - containerPort: {{ .Values.frontend.deployment.containerPort }}
         resources:
           limits:
-            cpu: {{ .Values.deployment.resources.limits.cpu }}
-            memory: {{ .Values.deployment.resources.limits.memory }}
+            cpu: {{ .Values.frontend.deployment.resources.limits.cpu }}
+            memory: {{ .Values.frontend.deployment.resources.limits.memory }}
           requests:
-            cpu: {{ .Values.deployment.resources.requests.cpu }}
-            memory: {{ .Values.deployment.resources.requests.memory }} 
+            cpu: {{ .Values.frontend.deployment.resources.requests.cpu }}
+            memory: {{ .Values.frontend.deployment.resources.requests.memory }}
+---
+# Backend deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.backend.deployment.name }}
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    app: {{ .Values.backend.deployment.name }}
+spec:
+  replicas: {{ .Values.backend.deployment.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.backend.deployment.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.backend.deployment.name }}
+      annotations:
+        rollme: {{ .Values.backend.deployment.image.tag | quote }}
+    spec:
+      containers:
+      - name: {{ .Values.backend.deployment.name }}
+        image: "{{ .Values.backend.deployment.image.repository }}:{{ .Values.backend.deployment.image.tag }}"
+        imagePullPolicy: {{ .Values.backend.deployment.image.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.backend.deployment.containerPort }}
+        env:
+          {{- range .Values.backend.deployment.env }}
+          - name: {{ .name }}
+            {{- if .value }}
+            value: {{ .value | quote }}
+            {{- else if .valueFrom }}
+            valueFrom:
+              {{- toYaml .valueFrom | nindent 14 }}
+            {{- end }}
+          {{- end }}
+        resources:
+          limits:
+            cpu: {{ .Values.backend.deployment.resources.limits.cpu }}
+            memory: {{ .Values.backend.deployment.resources.limits.memory }}
+          requests:
+            cpu: {{ .Values.backend.deployment.resources.requests.cpu }}
+            memory: {{ .Values.backend.deployment.resources.requests.memory }} 

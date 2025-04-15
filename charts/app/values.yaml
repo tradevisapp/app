@@ -4,27 +4,74 @@ fullnameOverride: ""
 namespace:
   create: true
   name: app
-deployment:
-  name: tradevis-frontend
-  replicas: 2
-  image:
-    repository: roeilevinson/tradevis-frontend
-    tag: v0.1.25
-    pullPolicy: Always
-  resources:
-    limits:
-      cpu: 500m
-      memory: 512Mi
-    requests:
-      cpu: 100m
-      memory: 128Mi
-  containerPort: 80
-service:
-  name: tradevis-frontend
-  type: NodePort
-  port: 80
-  targetPort: 80
-  nodePort: 30080
+
+# Frontend configuration
+frontend:
+  deployment:
+    name: tradevis-frontend
+    replicas: 2
+    image:
+      repository: roeilevinson/tradevis-frontend
+      tag: v0.1.25
+      pullPolicy: Always
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+    containerPort: 80
+  service:
+    name: tradevis-frontend-svc
+    type: ClusterIP
+    port: 80
+    targetPort: 80
+
+# Backend configuration
+backend:
+  deployment:
+    name: tradevis-backend
+    replicas: 2
+    image:
+      repository: roeilevinson/tradevis-backend
+      tag: latest
+      pullPolicy: Always
+    resources:
+      limits:
+        cpu: 300m
+        memory: 384Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+    containerPort: 3001
+    env:
+      - name: PORT
+        value: "3001"
+      - name: AUTH0_DOMAIN
+        valueFrom:
+          secretKeyRef:
+            name: auth0-credentials
+            key: domain
+      - name: AUTH0_AUDIENCE
+        valueFrom:
+          secretKeyRef:
+            name: auth0-credentials
+            key: audience
+      - name: AUTH0_CLIENT_SECRET
+        valueFrom:
+          secretKeyRef:
+            name: auth0-credentials
+            key: client-secret
+      - name: CLIENT_ORIGIN_URL
+        value: "http://tradevis.click"
+  service:
+    name: tradevis-backend-svc
+    type: ClusterIP
+    port: 3001
+    targetPort: 3001
+
+# Ingress configuration
 ingress:
   enabled: true
   name: tradevis-ingress
@@ -32,5 +79,13 @@ ingress:
   annotations:
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
   host: tradevis.click
-  path: /
-  pathType: Prefix
+  frontend:
+    path: /
+    pathType: Prefix
+  backend:
+    path: /api
+    pathType: Prefix
+
+# Auth0 Secret (to be created separately via kubectl)
+auth0:
+  createSecret: false  # Set to true if you want the chart to create the secret
