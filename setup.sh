@@ -19,7 +19,7 @@ source ./scripts/configure-argocd.sh
 
 # Deploy the application with Helm
 echo "Deploying application with Helm..."
-helm upgrade --install tradevis ./charts/app --namespace app \
+helm install tradevis ./charts/app --namespace app \
   --set auth0.domain="$AUTH0_DOMAIN" \
   --set auth0.audience="$AUTH0_AUDIENCE" \
   --set auth0.clientSecret="$AUTH0_CLIENT_SECRET"
