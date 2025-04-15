@@ -27,18 +27,6 @@ fi
 echo "Creating Auth0 credentials secret..."
 source ./scripts/create-auth0-secret.sh
 
-# Build and push Docker images (frontend and backend)
-echo "Building and pushing Docker images..."
-cd ../frontend
-docker build -t ${DOCKERHUB_USERNAME}/tradevis-frontend:latest .
-docker push ${DOCKERHUB_USERNAME}/tradevis-frontend:latest
-
-cd ../backend
-docker build -t ${DOCKERHUB_USERNAME}/tradevis-backend:latest .
-docker push ${DOCKERHUB_USERNAME}/tradevis-backend:latest
-
-cd ../app
-
 # Deploy the application with Helm
 echo "Deploying application with Helm..."
 helm upgrade --install tradevis ./charts/app --namespace app
