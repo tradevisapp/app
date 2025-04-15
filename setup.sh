@@ -7,15 +7,15 @@ export DOCKERHUB_USERNAME
 echo "Starting TradeVis application setup..."
 
 # Source all component scripts
-sudo ./scripts/update-system.sh
-sudo ./scripts/install-docker.sh
-sudo ./scripts/install-kubectl.sh
-sudo ./scripts/install-helm.sh
-sudo ./scripts/install-kind.sh
-sudo ./scripts/setup-kind-cluster.sh
-sudo ./scripts/install-argocd.sh
-sudo ./scripts/install-nginx-ingress.sh
-sudo ./scripts/configure-argocd.sh
+source ./scripts/update-system.sh
+source ./scripts/install-docker.sh
+source ./scripts/install-kubectl.sh
+source ./scripts/install-helm.sh
+source ./scripts/install-kind.sh
+source ./scripts/setup-kind-cluster.sh
+source ./scripts/install-argocd.sh
+source ./scripts/install-nginx-ingress.sh
+source ./scripts/configure-argocd.sh
 
 # Check for Auth0 client secret
 if [ -z "$AUTH0_CLIENT_SECRET" ]; then
@@ -25,7 +25,7 @@ fi
 
 # Create Auth0 secret
 echo "Creating Auth0 credentials secret..."
-sudo ./scripts/create-auth0-secret.sh
+source ./scripts/create-auth0-secret.sh
 
 # Deploy the application with Helm
 echo "Deploying application with Helm..."
