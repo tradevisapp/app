@@ -34,3 +34,7 @@ ingress:
   host: tradevis.click
   path: /
   pathType: Prefix
+backend:
+  deployment:
+    image:
+      tag: v1.0.1
