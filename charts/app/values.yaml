@@ -89,4 +89,7 @@ ingress:
 # Auth0 Secret (created from environment variables)
 auth0:
   createSecret: true  # Chart will create the secret using environment variables
+  domain: ""  # Auth0 domain
+  audience: ""  # Auth0 API audience
+  clientSecret: ""  # Auth0 client secret
 

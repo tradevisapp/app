@@ -19,7 +19,10 @@ source ./scripts/configure-argocd.sh
 
 # Deploy the application with Helm
 echo "Deploying application with Helm..."
-helm upgrade --install tradevis ./charts/app --namespace app
+helm upgrade --install tradevis ./charts/app --namespace app \
+  --set auth0.domain="$AUTH0_DOMAIN" \
+  --set auth0.audience="$AUTH0_AUDIENCE" \
+  --set auth0.clientSecret="$AUTH0_CLIENT_SECRET"
 
 echo "TradeVis application setup completed successfully with ArgoCD!"
 echo "You can access the application at http://tradevis.click"
