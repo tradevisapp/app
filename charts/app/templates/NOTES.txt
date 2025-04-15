@@ -2,17 +2,26 @@ Thank you for installing {{ .Chart.Name }}.
 
 Your application has been deployed with the following configurations:
 
-Application name: {{ .Values.deployment.name }}
+Frontend:
+  Name: {{ .Values.frontend.deployment.name }}
+  Replicas: {{ .Values.frontend.deployment.replicas }}
+
+Backend:
+  Name: {{ .Values.backend.deployment.name }}
+  Replicas: {{ .Values.backend.deployment.replicas }}
+
 Namespace: {{ .Values.namespace.name }}
-Replicas: {{ .Values.deployment.replicas }}
 
 {{- if .Values.ingress.enabled }}
 You can access your application at:
   http://{{ .Values.ingress.host }}
 {{- else }}
-You can access your application using port-forward:
-  kubectl port-forward -n {{ .Values.namespace.name }} svc/{{ .Values.service.name }} {{ .Values.service.port }}:{{ .Values.service.port }}
-  Then visit http://localhost:{{ .Values.service.port }}
+You can access your frontend using port-forward:
+  kubectl port-forward -n {{ .Values.namespace.name }} svc/{{ .Values.frontend.service.name }} {{ .Values.frontend.service.port }}:{{ .Values.frontend.service.port }}
+  Then visit http://localhost:{{ .Values.frontend.service.port }}
+
+You can access your backend using port-forward:
+  kubectl port-forward -n {{ .Values.namespace.name }} svc/{{ .Values.backend.service.name }} {{ .Values.backend.service.port }}:{{ .Values.backend.service.port }}
 {{- end }}
 
 To get more details about the deployment:
